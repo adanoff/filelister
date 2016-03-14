@@ -140,6 +140,7 @@ func textWalk(path string, listing []*ListFile, logger *log.Logger) {
 
 }
 
+// list files in listing (at path) in JSON format
 func jsonWalk(path string, listing []*ListFile, logger *log.Logger) {
 
     jsonBytes, err := json.Marshal(listing)
