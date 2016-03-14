@@ -72,6 +72,44 @@ func toListFile(fi os.FileInfo, parentPath string, recursive bool, logger *log.L
 
 }
 
+// print a ListFile as text
+func (lf *ListFile) TextPrint(level int) {
+
+    for i := 0; i < level; i++ {
+        fmt.Print("\t")
+    }
+
+    displayName := lf.Name
+
+    if lf.IsLink {
+        displayName += "*  ->  " + lf.LinksTo
+    } else if lf.IsDir {
+        displayName += "/"
+    }
+
+    fmt.Println(displayName)
+
+    for _, child := range(lf.Children) {
+        child.TextPrint(level + 1)
+    }
+
+}
+
+// list files in listing (at path) in text format
+func textWalk(path string, listing []*ListFile, logger *log.Logger) {
+
+    if !strings.HasSuffix(path, "/") {
+        path += "/"
+    }
+
+    fmt.Println(path)
+
+    for _, lf := range(listing) {
+        lf.TextPrint(1)
+    }
+
+}
+
 func main() {
 
     var showHelp bool
