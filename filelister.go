@@ -4,6 +4,11 @@ import (
     "fmt"
     "flag"
     "os"
+    "path/filepath"
+    "strings"
+    "io/ioutil"
+    "log"
+    "time"
 )
 
 // represents a file to be listed
@@ -15,6 +20,56 @@ type ListFile struct {
     Size            int64
     Name            string
     Children        []*ListFile
+}
+
+// converts an os.FileInfo into a ListFile
+func toListFile(fi os.FileInfo, parentPath string, recursive bool, logger *log.Logger) (lf *ListFile) {
+
+    mtime := fi.ModTime()
+    fMode := fi.Mode()
+    isLink := fMode & os.ModeSymlink == os.ModeSymlink
+    fName := fi.Name()
+    fPath, _ := filepath.Abs(filepath.Join(parentPath, fName))
+    isDir := fi.IsDir()
+    fSize := fi.Size()
+
+    linkPath := ""
+
+    if isLink {
+        var err error
+        linkPath, err = os.Readlink(fPath)
+        if err != nil {
+            logger.Fatal(err)
+        }
+        linkPath, _ = filepath.Abs(linkPath)
+    }
+
+    children := []*ListFile{}
+
+    // add the children
+    if recursive && isDir {
+        listing, err := ioutil.ReadDir(fPath)
+        if err != nil {
+            logger.Fatal(err)
+        }
+
+        for _, l := range(listing) {
+            children = append(children, toListFile(l, fPath, recursive, logger))
+        }
+    }
+
+    lf = &ListFile{
+        ModifiedTime: mtime,
+        IsLink: isLink,
+        IsDir: isDir,
+        LinksTo: linkPath,
+        Size: fSize,
+        Name: fName,
+        Children: children,
+    }
+
+    return
+
 }
 
 func main() {
