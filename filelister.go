@@ -5,10 +5,12 @@ import (
     "flag"
     "os"
     "path/filepath"
+    "encoding/json"
     "strings"
     "io/ioutil"
     "log"
     "time"
+    "bytes"
 )
 
 // represents a file to be listed
@@ -95,6 +97,21 @@ func (lf *ListFile) TextPrint(level int) {
 
 }
 
+// print a ListFile as json
+func (lf *ListFile) JSONPrint(logger *log.Logger) {
+
+    jsonBytes, err := json.Marshal(lf)
+    if err != nil {
+        logger.Fatal(err)
+    }
+
+    var out bytes.Buffer
+    json.Indent(&out, jsonBytes, "", "    ")
+    out.WriteTo(os.Stdout)
+    fmt.Println()
+
+}
+
 // list files in listing (at path) in text format
 func textWalk(path string, listing []*ListFile, logger *log.Logger) {
 
@@ -107,6 +124,20 @@ func textWalk(path string, listing []*ListFile, logger *log.Logger) {
     for _, lf := range(listing) {
         lf.TextPrint(1)
     }
+
+}
+
+func jsonWalk(path string, listing []*ListFile, logger *log.Logger) {
+
+    jsonBytes, err := json.Marshal(listing)
+    if err != nil {
+        logger.Fatal(err)
+    }
+
+    var out bytes.Buffer
+    json.Indent(&out, jsonBytes, "", "  ")
+    out.WriteTo(os.Stdout)
+    fmt.Println()
 
 }
 
