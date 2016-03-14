@@ -6,6 +6,17 @@ import (
     "os"
 )
 
+// represents a file to be listed
+type ListFile struct {
+    ModifiedTime    time.Time
+    IsLink          bool
+    IsDir           bool
+    LinksTo         string
+    Size            int64
+    Name            string
+    Children        []*ListFile
+}
+
 func main() {
 
     var showHelp bool
