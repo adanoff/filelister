@@ -125,6 +125,8 @@ func (lf *ListFile) YAMLPrint(logger *log.Logger) {
 
 }
 
+type WalkFunc func(string, []*ListFile, *log.Logger)
+
 // list files in listing (at path) in text format
 func textWalk(path string, listing []*ListFile, logger *log.Logger) {
 
@@ -180,9 +182,45 @@ func main() {
     flag.StringVar(&outFmt, "output", "text", "output format - json|yaml|text")
     flag.Parse()
 
+    outFmt = strings.ToLower(outFmt)
+
+    logger := log.New(os.Stderr, "", 0)
+
+    walkFuncs := make(map[string]WalkFunc)
+    walkFuncs["text"] = textWalk
+    walkFuncs["yaml"] = yamlWalk
+    walkFuncs["json"] = jsonWalk
+
+    // show help and quit
     if showHelp {
         flag.Usage()
         os.Exit(0)
     }
-    fmt.Println("we made it")
+
+    // empty path, quit
+    if path == "" {
+        logger.Fatal("path cannot be empty\n")
+    }
+
+    fInfos, err := ioutil.ReadDir(path)
+
+    // make sure we could read the directory
+    if err != nil {
+        logger.Fatal(path, " - ", err)
+    }
+
+    listing := []*ListFile{}
+
+    // convert the directory contents into ListFiles
+    for _, fInfo := range(fInfos) {
+        listing = append(listing, toListFile(fInfo, path, recursive, logger))
+    }
+
+    // invalid output format
+    if _, ok := walkFuncs[outFmt]; !ok {
+        logger.Fatal("output format must be one of text|json|yaml\n");
+    }
+
+    walkFuncs[outFmt](path, listing, logger)
+
 }
