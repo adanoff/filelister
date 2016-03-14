@@ -11,6 +11,7 @@ import (
     "log"
     "time"
     "bytes"
+    "gopkg.in/yaml.v2"
 )
 
 // represents a file to be listed
@@ -112,6 +113,18 @@ func (lf *ListFile) JSONPrint(logger *log.Logger) {
 
 }
 
+// print a ListFile as YAML
+func (lf *ListFile) YAMLPrint(logger *log.Logger) {
+
+    yamlBytes, err := yaml.Marshal(lf)
+    if err != nil {
+        logger.Fatal(err)
+    }
+
+    fmt.Println(string(yamlBytes))
+
+}
+
 // list files in listing (at path) in text format
 func textWalk(path string, listing []*ListFile, logger *log.Logger) {
 
@@ -138,6 +151,18 @@ func jsonWalk(path string, listing []*ListFile, logger *log.Logger) {
     json.Indent(&out, jsonBytes, "", "  ")
     out.WriteTo(os.Stdout)
     fmt.Println()
+
+}
+
+// list files in listing (at path) in YAML format
+func yamlWalk(path string, listing []*ListFile, logger *log.Logger) {
+
+    yamlBytes, err := yaml.Marshal(listing)
+    if err != nil {
+        logger.Fatal(err)
+    }
+
+    fmt.Println(string(yamlBytes))
 
 }
 
